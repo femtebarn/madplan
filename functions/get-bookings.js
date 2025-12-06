@@ -1,16 +1,9 @@
-// netlify/functions/get-bookings.js
-import { fileURLToPath } from "url";
-import { dirname } from "path";
-import fs from "fs";
+import { blobs } from "@netlify/blobs";
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const DATA_FILE = __dirname + "/bookings.json";
-
-export default async function handler(event, context) {
+export default async () => {
   try {
-    const data = fs.existsSync(DATA_FILE)
-      ? JSON.parse(fs.readFileSync(DATA_FILE))
-      : {};
+    const store = blobs("bookings");
+    const all = await store.get("all", { type: "json" }) || [];
 
     return {
       statusCode: 200,
@@ -18,12 +11,13 @@ export default async function handler(event, context) {
         "Content-Type": "application/json",
         "Access-Control-Allow-Origin": "*"
       },
-      body: JSON.stringify(data)
+      body: JSON.stringify(all)
     };
+
   } catch (err) {
     return {
       statusCode: 500,
       body: JSON.stringify({ error: String(err) })
     };
   }
-}
+};
